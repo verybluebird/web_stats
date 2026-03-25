@@ -160,9 +160,12 @@ for uploaded_file in uploaded_files:
         index=None
     )
 
+
     options_list = df["Group"].unique()
 
-    if number_of_groups == "2":
+    if number_of_groups is None:
+        st.write("Select number of groups")
+    elif number_of_groups == "2":
         bttn = 0
         gr1 = st.selectbox(
             "Select a first group",  # Label for the widget
