@@ -4,4 +4,4 @@ numpy
 altair<5
 streamlit==1.55.0
 standard-imghdr
-matplotlib.pyplot
+matplotlib
