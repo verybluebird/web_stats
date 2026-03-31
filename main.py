@@ -1,13 +1,58 @@
 import pandas as pd
 from scipy import stats as st
 import numpy as np
+import matplotlib.pyplot as plt
 import streamlit as st
 from scipy import stats as stats
 from scipy.stats import mannwhitneyu
 from scipy.stats import ks_2samp
 
 
+def box_plot(chosen_molecule, data, labels):
+    plt.rcParams['font.size'] = 11
+    plt.rcParams.update({'mathtext.default': 'regular'})
 
+    fig, ax = plt.subplots(figsize=(5.5, 4))
+    # print(labels)
+    mol_data=data
+    # hardness = ax.boxplot(data, tick_labels=labels[0], sym="", widths=0.4, medianprops={'alpha': 1})
+    for i in range(len(data)):
+        # st.write(data[i])
+        mol_data[i] = mol_data[i][chosen_molecule]
+
+
+    plt.boxplot(mol_data, labels=labels)
+    ax.set_ylabel(chosen_molecule)
+    st.pyplot(fig)
+    # if st.button("Save figure"):
+    path = str(chosen_molecule)+"_"+str(labels)+".svg"
+    fig.savefig(path, bbox_inches="tight")
+        # st.write("Your figure has been saved to ",path)
+
+
+
+
+def draw_box_plot(test_df, sub_df1, sub_df2,labels):
+    molecules = st.selectbox(
+        "Select a molecule for box plot",  # Label for the widget
+        test_df.index,  # The initial list of options
+        index=None,  # Start with no option selected
+        placeholder="Choose an option...",  # Placeholder text
+        accept_new_options=False  # Enable text input
+    )
+
+    # molecules = st.multiselect(
+    #     "Select molecules for box plot",
+    #     test_df.index,
+    #     max_selections=len(test_df.index),
+    #     accept_new_options=False,
+    # )
+    # if len(molecules) > 0:
+    if molecules != None:
+        data=[sub_df1, sub_df2]
+        if st.button("Draw boxplot"):
+            # for molecule in molecules:
+            box_plot(molecules, data, labels)
 
 def color_survived(val):
     color = 'green' if val > 0.05 else 'red'
@@ -164,7 +209,7 @@ for uploaded_file in uploaded_files:
     options_list = df["Group"].unique()
 
     if number_of_groups is None:
-        st.write("Select number of groups")
+        st.write()
     elif number_of_groups == "2":
         bttn = 0
         gr1 = st.selectbox(
@@ -183,9 +228,17 @@ for uploaded_file in uploaded_files:
         )
         # st.write(options_list)
         if gr1 != None and gr2 != None:
+            labels = [gr1, gr2]
             sub_df1 = df.loc[df["Group"] == gr1]
             sub_df2 = df.loc[df["Group"] == gr2]
             test_df = pd.DataFrame(columns=['p-value'], index=sub_df1.columns[2:])
+            if st.button("Show dataframes"):
+                st.write("Initial dataframe:")
+                st.write(df)
+                st.write("Dataframe, group", gr1)
+                st.write(sub_df1)
+                st.write("Dataframe, group", gr2)
+                st.write(sub_df2)
             test = st.selectbox(
                 "Select two-group statistics",  # Label for the widget
                 statistics_list_2,  # The initial list of options
@@ -193,9 +246,7 @@ for uploaded_file in uploaded_files:
                 placeholder="Choose an option...",  # Placeholder text
                 accept_new_options=False  # Enable text input
             )
-            st.write(df)
-            st.write(sub_df1)
-            st.write(sub_df2)
+
 
             if test == "Student's t-test " and st.button("Perform test", on_click=click_button):
 
@@ -215,6 +266,10 @@ for uploaded_file in uploaded_files:
             elif test == "Kolmogorov–Smirnov test" and st.button("Perform test", on_click=click_button):
                 test_df = Kolmogorov(sub_df1, sub_df2, test_df)
                 result(test_df)
+
+
+
+            draw_box_plot(test_df, sub_df1, sub_df2, labels)
     elif number_of_groups == "3 or more":
         bttn = 0
         groups = st.multiselect(
