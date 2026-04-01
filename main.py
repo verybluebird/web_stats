@@ -1,11 +1,21 @@
 import pandas as pd
-from scipy import stats as st
-import numpy as np
+
 import matplotlib.pyplot as plt
 import streamlit as st
 from scipy import stats as stats
 from scipy.stats import mannwhitneyu
 from scipy.stats import ks_2samp
+
+
+from pca import *
+
+
+def draw_pca(df,features):
+    # if st.button("Draw PCA"):
+
+        features=features.tolist()
+
+        pca(df,features)
 
 
 def box_plot(chosen_molecule, data, labels):
@@ -53,6 +63,7 @@ def draw_box_plot(test_df, sub_df1, sub_df2,labels):
         if st.button("Draw boxplot"):
             # for molecule in molecules:
             box_plot(molecules, data, labels)
+
 
 def color_survived(val):
     color = 'green' if val > 0.05 else 'red'
@@ -202,12 +213,12 @@ for uploaded_file in uploaded_files:
     number_of_groups = st.radio(
         "Select number of groups",
         ["1", "2", "3 or more"],
-        index=None
+        index=1
     )
 
 
     options_list = df["Group"].unique()
-
+    print(options_list)
     if number_of_groups is None:
         st.write()
     elif number_of_groups == "2":
@@ -215,14 +226,14 @@ for uploaded_file in uploaded_files:
         gr1 = st.selectbox(
             "Select a first group",  # Label for the widget
             options_list,  # The initial list of options
-            index=None,  # Start with no option selected
+            index=1,  # Start with no option selected
             placeholder="Choose an option...",  # Placeholder text
             accept_new_options=False  # Enable text input
         )
         gr2 = st.selectbox(
             "Select a second group",  # Label for the widget
             options_list,  # The initial list of options
-            index=None,  # Start with no option selected
+            index=2,  # Start with no option selected
             placeholder="Choose an option...",  # Placeholder text
             accept_new_options=False  # Enable text input
         )
@@ -270,6 +281,7 @@ for uploaded_file in uploaded_files:
 
 
             draw_box_plot(test_df, sub_df1, sub_df2, labels)
+            draw_pca(df, test_df.index)
     elif number_of_groups == "3 or more":
         bttn = 0
         groups = st.multiselect(
