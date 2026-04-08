@@ -10,6 +10,13 @@ from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 
 
+def draw_pca(df,features):
+    # if st.button("Draw PCA"):
+
+        features=features.tolist()
+        pca(df,features)
+
+
 
 def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
     """

@@ -1,197 +1,14 @@
-import pandas as pd
-
 import matplotlib.pyplot as plt
 import streamlit as st
-from scipy import stats as stats
-from scipy.stats import mannwhitneyu
-from scipy.stats import ks_2samp
 
 
+from tests import *
 from pca import *
+from box_plots import *
+from interface import *
+from venn import *
 
 
-def draw_pca(df,features):
-    # if st.button("Draw PCA"):
-
-        features=features.tolist()
-
-        pca(df,features)
-
-
-def box_plot(chosen_molecule, data, labels):
-    plt.rcParams['font.size'] = 11
-    plt.rcParams.update({'mathtext.default': 'regular'})
-
-    fig, ax = plt.subplots(figsize=(5.5, 4))
-    # print(labels)
-    mol_data=data
-    # hardness = ax.boxplot(data, tick_labels=labels[0], sym="", widths=0.4, medianprops={'alpha': 1})
-    for i in range(len(data)):
-        # st.write(data[i])
-        mol_data[i] = mol_data[i][chosen_molecule]
-
-
-    plt.boxplot(mol_data, labels=labels)
-    ax.set_ylabel(chosen_molecule)
-    st.pyplot(fig)
-    # if st.button("Save figure"):
-    path = str(chosen_molecule)+"_"+str(labels)+".svg"
-    fig.savefig(path, bbox_inches="tight")
-        # st.write("Your figure has been saved to ",path)
-
-
-
-
-def draw_box_plot(test_df, sub_df1, sub_df2,labels):
-    molecules = st.selectbox(
-        "Select a molecule for box plot",  # Label for the widget
-        test_df.index,  # The initial list of options
-        index=None,  # Start with no option selected
-        placeholder="Choose an option...",  # Placeholder text
-        accept_new_options=False  # Enable text input
-    )
-
-    # molecules = st.multiselect(
-    #     "Select molecules for box plot",
-    #     test_df.index,
-    #     max_selections=len(test_df.index),
-    #     accept_new_options=False,
-    # )
-    # if len(molecules) > 0:
-    if molecules != None:
-        data=[sub_df1, sub_df2]
-        if st.button("Draw boxplot"):
-            # for molecule in molecules:
-            box_plot(molecules, data, labels)
-
-
-def color_survived(val):
-    color = 'green' if val > 0.05 else 'red'
-    return f'background-color: {color}'
-
-def result(test_df):
-    st.dataframe(
-        test_df.style.map(lambda x: f"background-color: {'green' if x >= 0.05 else 'red'}", subset='p-value'),
-        column_config={
-            "_index": st.column_config.Column(width="medium"),
-            "p-value": st.column_config.Column(width="small")
-        },
-        width='content'  # Set to True to stretch table to container width
-
-    )
-
-def normality(sub_df1):
-    st.write("Testing for normality. ")
-
-    if normal == 0:
-        st.write("The",
-                 "assumption of normality is violated. Consider non - parametric tests (e.g., Wilcoxon",
-                 "signed - rank, Mann - Whitney U) or data transformation.")
-    else:
-        st.write("Data is normally distributed. ")
-
-    st.write(sub_df1)
-
-def T_Test(sub_df1, sub_df2, test_df):
-
-    for column in sub_df1.columns[2:]:
-        a_df = sub_df1[column]
-        b_df = sub_df2[column]
-        if not b_df.empty:
-            a = a_df.to_numpy()
-            b = b_df.to_numpy()
-            p_val = stats.ttest_ind(a=a, b=b, equal_var=True).pvalue
-            # st.write(column, '\t', "equal" if p_val > 0.05 else "not equal", '\t', p_val)
-            test_df.loc[column] = p_val
-    return test_df
-
-def  Mann_Whitney_U(sub_df1, sub_df2, test_df):
-    for column in sub_df1.columns[2:]:
-        a_df = sub_df1[column]
-        b_df = sub_df2[column]
-        if not b_df.empty:
-            a = a_df.to_numpy()
-            b = b_df.to_numpy()
-            p_val = mannwhitneyu(a, b, method="exact").pvalue
-            test_df.loc[column] = p_val
-    return test_df
-
-def Shapiro(sub_df1):
-    for column in sub_df1.columns[2:]:
-        a_df = sub_df1[column]
-
-        if not a_df.empty:
-
-            a = a_df.to_numpy()
-            shapiro_test1 = stats.shapiro(a)
-            p_val = shapiro_test1.pvalue
-            global normal
-            # st.write("df1 ", '\t', "is normally distributed" if p_val > 0.05 else "is not normally distributed", '\t',
-            #          "p value", p_val)
-            if p_val < 0.05:
-                normal=1
-            else:
-                normal=0
-
-
-
-    return p_val
-
-def K_s_norm(sub_df1):
-    for column in sub_df1.columns[2:]:
-        a_df = sub_df1[column]
-
-        if not a_df.empty:
-
-            a = a_df.to_numpy()
-            p_val = stats.kstest(a,stats.norm.cdf).pvalue
-            global normal
-            # st.write("df1 ", '\t', "is normally distributed" if p_val > 0.05 else "is not normally distributed", '\t',
-            #          "p value", p_val)
-            if p_val < 0.05:
-                normal=1
-            else:
-                normal=0
-
-
-
-    return p_val
-
-def Mann_Whitney(sub_df1, sub_df2, test_df):
-    for column in sub_df1.columns[2:]:
-        a_df = sub_df1[column]
-        b_df = sub_df2[column]
-        if not b_df.empty:
-            a = a_df.to_numpy()
-            b = b_df.to_numpy()
-            _, p_val = mannwhitneyu(a, b, method="exact")
-            # st.write(column, '\t', "equal" if p_val > 0.05 else "not equal", '\t', p_val)
-            test_df.loc[column] = p_val
-    return test_df
-def Kolmogorov_normality(a):
-    return stats.kstest(a,stats.norm.cdf).pvalue
-
-def Kolmogorov(sub_df1, sub_df2, test_df):
-    normal = 1
-    for column in sub_df1.columns[2:]:
-        a_df = sub_df1[column]
-        b_df = sub_df2[column]
-        if not b_df.empty:
-            a = a_df.to_numpy()
-            b = b_df.to_numpy()
-
-            if Kolmogorov_normality(a) <0.05 or Kolmogorov_normality(b) <0.05:
-                normal=0
-            stats.kstest(b,stats.norm.cdf)
-            p_val = ks_2samp(a, b).pvalue
-            # st.write(column, '\t', "equal" if p_val > 0.05 else "not equal", '\t', p_val)
-            test_df.loc[column] = p_val
-    if normal == 0:
-        st.write("The",
-                 "assumption of normality is violated.")
-    return test_df
-def click_button():
-    bttn=1
 options_list=[]
 global bttn
 
@@ -205,9 +22,9 @@ uploaded_files = st.file_uploader(
 
 
 
-
-
 for uploaded_file in uploaded_files:
+    global normal
+    normal=0
     df = pd.read_csv(uploaded_file,sep=';')
     number_of_groups=0
     number_of_groups = st.radio(
@@ -250,37 +67,33 @@ for uploaded_file in uploaded_files:
                 st.write(sub_df1)
                 st.write("Dataframe, group", gr2)
                 st.write(sub_df2)
-            test = st.selectbox(
-                "Select two-group statistics",  # Label for the widget
-                statistics_list_2,  # The initial list of options
-                index=None,  # Start with no option selected
-                placeholder="Choose an option...",  # Placeholder text
-                accept_new_options=False  # Enable text input
+
+            tests = st.multiselect(
+                "Select two-group statistics",
+                statistics_list_2,
+                max_selections=len(statistics_list_2),
+                accept_new_options=False,
+                key="statistics"
             )
+            global significant_metabolites
+            significant_metabolites=[]
+
+            # st.session_state.setdefault("step", 1)
 
 
-            if test == "Student's t-test " and st.button("Perform test", on_click=click_button):
+            if st.button('Perform test', on_click=yes_callback):
 
-                st.write("Testing for normality. ")
-
-                Shapiro(sub_df1)
-                Shapiro(sub_df2)
-                if normal == 0:
-                    st.write("The",
-                             "assumption of normality is violated. Consider non - parametric tests (e.g., Wilcoxon",
-                             "signed - rank, Mann - Whitney U) or data transformation.")
-                test_df = T_Test(sub_df1, sub_df2, test_df)
-                result(test_df)
-            elif test == "Mann–Whitney U test" and st.button("Perform test", on_click=click_button):
-                test_df = Mann_Whitney(sub_df1, sub_df2, test_df)
-                result(test_df)
-            elif test == "Kolmogorov–Smirnov test" and st.button("Perform test", on_click=click_button):
-                test_df = Kolmogorov(sub_df1, sub_df2, test_df)
-                result(test_df)
+                for test in tests:
+                    pair = perform_test(test,sub_df1,sub_df2,normal, test_df)
+                    significant_metabolites.append(pair)
+                    line(5)
+            # if st.session_state.step == 2:
+                venn(significant_metabolites)
 
 
-
+            line(10)
             draw_box_plot(test_df, sub_df1, sub_df2, labels)
+            line(10)
             draw_pca(df, test_df.index)
     elif number_of_groups == "3 or more":
         bttn = 0
@@ -319,11 +132,11 @@ for uploaded_file in uploaded_files:
                 accept_new_options=False  # Enable text input
             )
             if  test == "Shapiro":
-                p_val=Shapiro(sub_df1)
-                normality(sub_df1)
+                p_val=Shapiro(sub_df1, normal)
+                normality(sub_df1, normal)
             elif test == "Kolmogorov–Smirnov test":
-                p_val=K_s_norm(sub_df1)
-                normality(sub_df1)
+                p_val=K_s_norm(sub_df1, normal)
+                normality(sub_df1, normal)
 
 
 
