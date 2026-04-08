@@ -32,7 +32,7 @@ for uploaded_file in uploaded_files:
 
     operations = ["Drop N/A columns",  "Fill N/A with meadian", "Remove outliers", "Z-normalization", "1-normalization"]
     perform_operations = st.multiselect(
-        "Select groups",
+        "Select operations",
         operations,
         max_selections=len(operations),
         accept_new_options=False,
