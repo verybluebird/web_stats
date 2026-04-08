@@ -30,7 +30,7 @@ for uploaded_file in uploaded_files:
     number_of_groups = st.radio(
         "Select number of groups",
         ["1", "2", "3 or more"],
-        index=1
+        index=None
     )
 
 
@@ -43,14 +43,14 @@ for uploaded_file in uploaded_files:
         gr1 = st.selectbox(
             "Select a first group",  # Label for the widget
             options_list,  # The initial list of options
-            index=1,  # Start with no option selected
+            index=0,  # Start with no option selected
             placeholder="Choose an option...",  # Placeholder text
             accept_new_options=False  # Enable text input
         )
         gr2 = st.selectbox(
             "Select a second group",  # Label for the widget
             options_list,  # The initial list of options
-            index=2,  # Start with no option selected
+            index=1,  # Start with no option selected
             placeholder="Choose an option...",  # Placeholder text
             accept_new_options=False  # Enable text input
         )
