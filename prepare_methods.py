@@ -178,7 +178,7 @@ def prepare_df(df,perform_operations):
             st.write("Done")
 
     df.to_csv("df_prepared.csv", sep=';', index=True)
-    output_csv = df.to_csv(index=False).encode('utf-8')
+    output_csv = df.to_csv(index=False, sep=';').encode('utf-8')
     st.download_button('Download CSV', output_csv, file_name="df_prepared.csv", mime='text/csv')
     return df
 
