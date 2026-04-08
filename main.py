@@ -7,7 +7,7 @@ from pca import *
 from box_plots import *
 from interface import *
 from venn import *
-
+from prepare_methods import *
 
 options_list=[]
 global bttn
@@ -25,14 +25,33 @@ uploaded_files = st.file_uploader(
 for uploaded_file in uploaded_files:
     global normal
     normal=0
+    global df
     df = pd.read_csv(uploaded_file,sep=';')
     number_of_groups=0
+
+
+    operations = ["Drop N/A columns",  "Fill N/A with meadian", "Remove outliers", "Z-normalization", "1-normalization"]
+    perform_operations = st.multiselect(
+        "Select groups",
+        operations,
+        max_selections=len(operations),
+        accept_new_options=False,
+        default = operations
+    )
+    if len(perform_operations) >0:
+        if st.button("Prepare dataframe"):
+            df = prepare_df(df, perform_operations)
+            st.write(df)
+    if st.button("Show initial dataframe"):
+        st.write(df)
+
+
+
     number_of_groups = st.radio(
         "Select number of groups",
         ["1", "2", "3 or more"],
         index=None
     )
-
 
     options_list = df["Group"].unique()
     print(options_list)
