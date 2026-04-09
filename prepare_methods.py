@@ -14,12 +14,38 @@ def removeOutliers(data, col):
     print("IQR value for column %s is: %s" % (col, IQR))
 
     global filtered_data
+    df_cleaned_capped = data.copy()
 
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
-    data.loc[data[col] > upper_bound, col] = upper_bound
-    data.loc[data[col] < lower_bound, col] = lower_bound
-    filtered_data = data
+
+    # Cap values below the lower bound to the lower bound
+    # df_cleaned_capped[col] = np.where(
+    #     df_cleaned_capped[col] < lower_bound,
+    #     lower_bound,
+    #     df_cleaned_capped[col]
+    # )
+    for i in range(df_cleaned_capped[col].size):
+        x = df_cleaned_capped[col][i]
+        if x > upper_bound:
+            df_cleaned_capped[col][i] = upper_bound
+            print("In col:", col, "upper outlier is:", x, "changed to", df_cleaned_capped[col][i])
+        elif x < lower_bound:
+            df_cleaned_capped[col][i] = lower_bound
+            print("In col:", col, "lower outlier is:", x, "changed to", df_cleaned_capped[col][i])
+
+
+
+
+    # Cap values above the upper bound to the upper bound
+    # df_cleaned_capped[col] = np.where(
+    #     df_cleaned_capped[col] > upper_bound,
+    #     upper_bound,
+    #     df_cleaned_capped[col]
+    # )
+
+
+    filtered_data = df_cleaned_capped
 
 #z-normalization
 def normalizeDf(z_scaled):
@@ -122,9 +148,10 @@ def selectTwoGroups(df, gr1_name, gr2_name):
 def prepare_df(df,perform_operations):
     for op in perform_operations:
         if op == "Drop N/A columns":
+            st.write("Dropping N/A columns...")
             df = df.dropna(axis=1, how='all')
             df = df.astype(str)
-
+            st.write("Done")
         if op == "Delete unnecessary symbols":
             st.write("Deleting unnecessary symbols...")
             for molecule in df:
@@ -139,32 +166,49 @@ def prepare_df(df,perform_operations):
                     df[molecule] = df[molecule].map(lambda x: x.lstrip(r"#"))
                     df[molecule] = df[molecule].map(lambda x: str(x).replace(r"-", r" ("))
                     df[molecule] = df[molecule].map(lambda x: x + r")")
-        if op == "Fill N/A with meadian":
-            st.write("Filling N/A with meadian...")
+        if op == "Fill N/A with median":
+            st.write("Filling N/A with median...")
             for molecule in df:
+                df[molecule] = df[molecule].str.replace(',', '.')
                 if molecule != 'Sample' and molecule != 'Group':
                     # st.write(molecule)
                     df[molecule] = df[molecule].astype(float)
                     # st.write(df[molecule].median())
                     df[molecule] = df[molecule].fillna(df[molecule].median())
             st.write("Done")
-        if op== "Remove outliers":
+        if op == "Remove outliers":
             st.write("Removing outliers...")
-            for i in df.columns[2:]:
-                # print(i, 'original data', df[i])
-                if i != 'Sample' and i != 'Group':
-                    df[i] = df[i].astype(float)
-                    if i == df.columns[2]:
-                        removeOutliers(df, i)
-                    else:
 
-                        # print(i, 'filtered_data', filtered_data[i])
-                        if filtered_data[i].size != 0:
-                            removeOutliers(filtered_data, i)
-                        else:
-                            print('filtered_data[', i, '] size is 0')
-            df = filtered_data
-            df = df.sort_values('Group')
+
+            for col in df.columns:
+                if col != 'Sample' and col != 'Group':
+                    df[col] = df[col].astype(float)
+                    Q3 = np.quantile(df[col], 0.75)
+                    Q1 = np.quantile(df[col], 0.25)
+                    IQR = Q3 - Q1
+
+                    print("IQR value for column %s is: %s" % (col, IQR))
+
+                    # global filtered_data
+                    df_cleaned_capped = df.copy()
+
+                    lower_bound = Q1 - 1.5 * IQR
+                    upper_bound = Q3 + 1.5 * IQR
+
+                    # Cap values below the lower bound to the lower bound
+                    df_cleaned_capped[col] = np.where(
+                        df_cleaned_capped[col] < lower_bound,
+                        lower_bound,
+                        df_cleaned_capped[col]
+                    )
+
+                    df_cleaned_capped[col] = np.where(
+                        df_cleaned_capped[col] > upper_bound,
+                        upper_bound,
+                        df_cleaned_capped[col]
+                    )
+                    df=df_cleaned_capped
+
             st.write("Done")
         if op == "Z-normalization":
             st.write("Performing Z-normalization...")
@@ -176,6 +220,7 @@ def prepare_df(df,perform_operations):
             st.write("Performing 1-normalization...")
             df = normalizeDf_1(df)
             st.write("Done")
+
 
     df.to_csv("df_prepared.csv", sep=';', index=True)
     output_csv = df.to_csv(index=False, sep=';').encode('utf-8')

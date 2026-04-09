@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import numpy as np
+# import seaborn as sns
 
 import streamlit as st
 from matplotlib.patches import Ellipse
@@ -107,15 +108,22 @@ def pca(df, features):
             accept_new_options=False,
         )
     if len(targets)>1 and st.button("Draw PCA"):
-        colors = ['r', 'g', 'b','c','m','y','aquamarine', 'mediumseagreen', 'xkcd:sky blue', 'xkcd:eggshell']*(len(targets)//3+1)
-        for target, color in zip(targets, colors):
+        num_lines = len(targets)
+        # ax.set_prop_cycle(sns.color_palette("coolwarm_r", num_lines))
+        colors = ['salmon', 'lawngreen', 'dodgerblue','c','m','y','aquamarine', 'mediumseagreen',
+                  'xkcd:sky blue', 'orange', "red", "darkslategray", "teal", "indigo", "purple",
+                  "darkgreen", "mediumvioletred","crimson", "slategray", "royalblue"]*(len(targets)//3+1)
+        markers = (['.']*8+ [11]*8+ ["P"]*8+ ["*"]*8 +["+"]*8)*(len(targets)//3+1)
+        for target, m, color in zip(targets,markers, colors):
             indicesToKeep = finalDf['Group'] == target
             ax.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
                        , finalDf.loc[indicesToKeep, 'principal component 2']
                        , c=color
-                       , s=50)
+                       , s=50
+                       , marker=m)
 
-        for target, color in zip(targets, colors):
+
+        for target, color in zip(targets,colors):
             pc_scores = finalDf.loc[finalDf["Group"] == target]
 
             x = pc_scores.iloc[:, 0]
@@ -127,9 +135,11 @@ def pca(df, features):
             # You can also use the built-in function directly if your Matplotlib is up to date:
             # ax.confidence_ellipse(x, y, edgecolor='blue', label='Built-in 95%', n_std=2.0)
 
-        ax.legend(targets)
+        # ax.legend(targets)
+        ax.legend(targets,loc='center left', bbox_to_anchor=(1, 0.5))
         ax.grid()
         st.pyplot(fig)
         # if st.button("Save figure"):
         path = str("pca") + "_" + str(targets) + ".svg"
-        fig.savefig(path, bbox_inches="tight")
+        out_fig = fig.savefig(path, bbox_inches="tight")
+        # st.download_button('Download SVG', out_fig, file_name=path, mime='image/svg+xml')

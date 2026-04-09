@@ -23,7 +23,8 @@ def box_plot(chosen_molecule, data, labels):
     now = datetime.now()  # current date and time
     date_time = now.strftime("_%m_%d_%Y_%H_%M_%S")
     path = str(chosen_molecule)+"_"+str(labels)+date_time+".svg"
-    fig.savefig(path, bbox_inches="tight")
+    out_fig=fig.savefig(path, bbox_inches="tight",format="svg")
+    # st.download_button('Download SVG', out_fig, file_name=path , mime='image/svg+xml')
         # st.write("Your figure has been saved to ",path)
 
 

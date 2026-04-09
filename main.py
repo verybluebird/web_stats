@@ -19,29 +19,35 @@ uploaded_files = st.file_uploader(
     "Upload data", accept_multiple_files=True, type="csv"
 )
 
+if 'normal' not in st.session_state:
+    st.session_state.normal = 0
 
 
 
 for uploaded_file in uploaded_files:
-    global normal
-    normal=0
-    global df
+    # global normal
+    # normal=0
+    # global df
     df = pd.read_csv(uploaded_file,sep=';')
-    number_of_groups=0
+    if 'df' not in st.session_state:
+        st.session_state.df = df
+    if st.button("Load dataframe"):
+        st.session_state.df = df
+    number_of_groups = 0
 
 
-    operations = ["Drop N/A columns",  "Fill N/A with meadian", "Remove outliers", "Z-normalization", "1-normalization"]
+    operations = ["Drop N/A columns",  "Fill N/A with median", "Remove outliers", "Z-normalization", "1-normalization"]
     perform_operations = st.multiselect(
         "Select operations",
         operations,
         max_selections=len(operations),
         accept_new_options=False,
-        default = operations
+        default = operations[:2]
     )
-    if len(perform_operations) >0:
+    if len(perform_operations) > 0:
         if st.button("Prepare dataframe"):
-            df = prepare_df(df, perform_operations)
-            st.write(df)
+            st.session_state.df = prepare_df(st.session_state.df, perform_operations)
+            st.write(st.session_state.df)
     if st.button("Show initial dataframe"):
         st.write(df)
 
@@ -76,12 +82,12 @@ for uploaded_file in uploaded_files:
         # st.write(options_list)
         if gr1 != None and gr2 != None:
             labels = [gr1, gr2]
-            sub_df1 = df.loc[df["Group"] == gr1]
-            sub_df2 = df.loc[df["Group"] == gr2]
+            sub_df1 = st.session_state.df.loc[st.session_state.df["Group"] == gr1]
+            sub_df2 = st.session_state.df.loc[st.session_state.df["Group"] == gr2]
             test_df = pd.DataFrame(columns=['p-value'], index=sub_df1.columns[2:])
             if st.button("Show dataframes"):
-                st.write("Initial dataframe:")
-                st.write(df)
+                st.write("Full dataframe:")
+                st.write(st.session_state.df)
                 st.write("Dataframe, group", gr1)
                 st.write(sub_df1)
                 st.write("Dataframe, group", gr2)
@@ -94,26 +100,30 @@ for uploaded_file in uploaded_files:
                 accept_new_options=False,
                 key="statistics"
             )
-            global significant_metabolites
-            significant_metabolites=[]
+
+            if 'significant_metabolites' not in st.session_state:
+                st.session_state.significant_metabolites = []
 
             # st.session_state.setdefault("step", 1)
 
 
             if st.button('Perform test', on_click=yes_callback):
-
+                st.session_state.significant_metabolites = []
                 for test in tests:
-                    pair = perform_test(test,sub_df1,sub_df2,normal, test_df)
-                    significant_metabolites.append(pair)
+                    pair = perform_test(test,sub_df1,sub_df2,st.session_state.normal, test_df)
+                    st.session_state.significant_metabolites.append(pair)
                     line(5)
             # if st.session_state.step == 2:
-                venn(significant_metabolites)
+                venn(st.session_state.significant_metabolites)
 
 
             line(10)
             draw_box_plot(test_df, sub_df1, sub_df2, labels)
-            line(10)
-            draw_pca(df, test_df.index)
+
+            if number_of_groups!="1" and len(sub_df1.columns[2:])>1:
+                line(10)
+                draw_pca(st.session_state.df, test_df.index)
+
     elif number_of_groups == "3 or more":
         bttn = 0
         groups = st.multiselect(
@@ -140,9 +150,12 @@ for uploaded_file in uploaded_files:
             accept_new_options=False  # Enable text input
         )
         if gr1 != None:
-            sub_df1 = df.loc[df["Group"] == gr1]
-
+            sub_df1 = st.session_state.df.loc[st.session_state.df["Group"] == gr1]
+            if st.button("Show dataframe"):
+                st.write("Dataframe:")
+                st.write(sub_df1)
             test_df = pd.DataFrame(columns=['p-value'], index=sub_df1.columns[2:])
+
             test = st.selectbox(
                 "Select one-group statistics",  # Label for the widget
                 statistics_list_1,  # The initial list of options
@@ -151,11 +164,11 @@ for uploaded_file in uploaded_files:
                 accept_new_options=False  # Enable text input
             )
             if  test == "Shapiro":
-                p_val=Shapiro(sub_df1, normal)
-                normality(sub_df1, normal)
+                p_val, normal = Shapiro(sub_df1)
+                normality(sub_df1,normal)
             elif test == "Kolmogorov–Smirnov test":
-                p_val=K_s_norm(sub_df1, normal)
-                normality(sub_df1, normal)
+                p_val, normal=K_s_norm(sub_df1)
+                normality(sub_df1,normal)
 
 
 
