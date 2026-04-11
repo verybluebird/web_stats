@@ -140,6 +140,13 @@ for uploaded_file in uploaded_files:
                 placeholder="Choose an option...",  # Placeholder text
                 accept_new_options=False  # Enable text input
             )
+        sub_dfs = []
+        for label in groups:
+            sub_dfs.append(st.session_state.df.loc[st.session_state.df["Group"] == label])
+
+        line(10)
+        test_df = pd.DataFrame(columns=['p-value'], index=st.session_state.df.columns[2:])
+        draw_box_plot_3more(sub_dfs,test_df, groups)
     elif number_of_groups == "1":
         bttn = 0
         gr1 = st.selectbox(

@@ -52,3 +52,17 @@ def draw_box_plot(test_df, sub_df1, sub_df2,labels):
             # for molecule in molecules:
             box_plot(molecules, data, labels)
 
+def draw_box_plot_3more(sub_dfs,test_df, groups):
+    molecules = st.selectbox(
+        "Select a molecule for box plot",  # Label for the widget
+        test_df.index,  # The initial list of options
+        index=None,  # Start with no option selected
+        placeholder="Choose an option...",  # Placeholder text
+        accept_new_options=False  # Enable text input
+    )
+
+    if molecules != None:
+        data = sub_dfs
+        if st.button("Draw boxplot"):
+            # for molecule in molecules:
+            box_plot(molecules, data, groups)
