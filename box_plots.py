@@ -7,7 +7,7 @@ def box_plot(chosen_molecule, data, labels):
     plt.rcParams['font.size'] = 11
     plt.rcParams.update({'mathtext.default': 'regular'})
 
-    fig, ax = plt.subplots(figsize=(5.5, 4))
+    fig, ax = plt.subplots(figsize=(2.5, 4))
     # print(labels)
     mol_data=data
     # hardness = ax.boxplot(data, tick_labels=labels[0], sym="", widths=0.4, medianprops={'alpha': 1})

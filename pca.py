@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 import numpy as np
 # import seaborn as sns
-
+from datetime import datetime
 import streamlit as st
 from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
@@ -107,6 +107,42 @@ def pca(df, features):
             max_selections=len(np.unique(y).tolist()),
             accept_new_options=False,
         )
+    if 'targets' not in st.session_state:
+        st.session_state.targets = targets
+
+    '''if (st.button("Change labels")):
+        new_labels = []*len(targets)
+        for t in targets:
+            if t == "1":
+                new_labels.append( "B. subtilis 1/8 на L среде")
+            elif t == "2":
+                new_labels.append("Стерильная L среда ")
+            elif t == "3":
+                new_labels.append( "B. subtilis 1/8 на ФБ")
+            elif t == "4":
+                new_labels.append( "В. atrophaeus 7 на ФБ ")
+            elif t == "5":
+                new_labels.append( "B. subtilis 1/8 + B. atrophaeus 7 на ФБ")
+            elif t == "7":
+                new_labels.append( "L. paraplantarum на ФЛ")
+            elif t == "8":
+                new_labels.append( "L. plantarum 8 на ФЛ")
+            elif t == "9":
+                new_labels.append( "L. plantarum 9 на ФЛ")
+            elif t == "6":
+                new_labels.append( "Среда ФБ")
+            elif t == "10":
+                new_labels.append( "L. paraplantarum + L. plantarum 8 \n + L. plantarum 9 на ФЛ")
+            elif t == "11":
+                new_labels.append( "ФЛ")
+            elif t == "LP_T":
+                new_labels.append("L. plantarum T на MRS")
+            elif t == "LP_8":
+                new_labels.append("L. plantarum 8 на MRS")
+            elif t == "LP_9":
+                new_labels.append("L. plantarum 9 на MRS")
+        st.session_state.targets = new_labels'''
+
     if len(targets)>1 and st.button("Draw PCA"):
         num_lines = len(targets)
         # ax.set_prop_cycle(sns.color_palette("coolwarm_r", num_lines))
@@ -136,10 +172,12 @@ def pca(df, features):
             # ax.confidence_ellipse(x, y, edgecolor='blue', label='Built-in 95%', n_std=2.0)
 
         # ax.legend(targets)
-        ax.legend(targets,loc='center left', bbox_to_anchor=(1, 0.5))
+        ax.legend(st.session_state.targets,loc='center left', bbox_to_anchor=(1, 0.5), fontsize='large')
         ax.grid()
         st.pyplot(fig)
         # if st.button("Save figure"):
-        path = str("pca") + "_" + str(targets) + ".svg"
+        now = datetime.now()  # current date and time
+        date_time = now.strftime("_%m_%d_%Y_%H_%M_%S")
+        path = str("pca") + "_" + str(targets) + date_time+".svg"
         out_fig = fig.savefig(path, bbox_inches="tight")
         # st.download_button('Download SVG', out_fig, file_name=path, mime='image/svg+xml')

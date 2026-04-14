@@ -122,7 +122,9 @@ for uploaded_file in uploaded_files:
 
             if number_of_groups!="1" and len(sub_df1.columns[2:])>1:
                 line(10)
+
                 draw_pca(st.session_state.df, test_df.index)
+
 
     elif number_of_groups == "3 or more":
         bttn = 0
